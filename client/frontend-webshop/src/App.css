@@ -1,0 +1,54 @@
+.container {
+  padding: 2rem 0;
+}
+
+/* Card styles */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  background-color: white;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  object-fit: contain;
+  height: 200px;
+}
+
+/* Navbar customization */
+.navbar-brand {
+  font-weight: 600;
+}
+
+/* Form controls */
+.form-select {
+  max-width: 200px;
+}
+
+/* Product grid spacing */
+.product-grid {
+  margin-top: 2rem;
+}
+
+/* Price styling */
+.price {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+/* Stock indicator */
+.stock-info {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.custom-navbar {
+  height: 4rem; /* Postavite željenu minimalnu visinu */
+}

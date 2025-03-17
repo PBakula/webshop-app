@@ -1,0 +1,808 @@
+openapi: 3.0.0
+info:
+  title: Webshop API
+  description: |
+    API za Webshop aplikaciju koja omogućuje pregled i kupnju proizvoda, upravljanje korisničkim računima,
+    te administraciju proizvoda i kategorija.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Lokalni razvojni server
+paths:
+  /api/login:
+    post:
+      tags:
+        - Autentikacija
+      summary: Prijava korisnika
+      description: Autentikacija korisnika i izdavanje JWT tokena
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequestDTO'
+      responses:
+        '200':
+          description: Uspješna prijava
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoDTO'
+        '401':
+          description: Neuspješna autentikacija
+          
+  /api/register:
+    post:
+      tags:
+        - Autentikacija
+      summary: Registracija korisnika
+      description: Registracija novog korisnika u sustav
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDTO'
+      responses:
+        '200':
+          description: Uspješna registracija
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDTO'
+        '400':
+          description: Greška pri registraciji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDTO'
+                
+  /api/refreshToken:
+    post:
+      tags:
+        - Autentikacija
+      summary: Obnova JWT tokena
+      description: Korištenje refresh tokena za dobivanje novog JWT pristupnog tokena
+      responses:
+        '200':
+          description: Uspješna obnova tokena
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoDTO'
+        '400':
+          description: Nevažeći refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDTO'
+                
+  /api/logout:
+    post:
+      tags:
+        - Autentikacija
+      summary: Odjava korisnika
+      description: Poništava pristupni i refresh token
+      responses:
+        '200':
+          description: Uspješna odjava
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDTO'
+                
+  /api/products:
+    get:
+      tags:
+        - Proizvodi
+      summary: Dohvat svih proizvoda
+      description: Dohvaća sve proizvode s opcionalnim filtriranjem po kategoriji i sortiranjem
+      parameters:
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: ID kategorije za filtriranje
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Polje za sortiranje (npr. "price")
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Redoslijed sortiranja ("asc" ili "desc")
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductDTO'
+                  
+    post:
+      tags:
+        - Proizvodi
+      summary: Kreiraj novi proizvod
+      description: Stvara novi proizvod s mogućnošću prilaganja slike
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                product:
+                  $ref: '#/components/schemas/ProductDTO'
+                imageFile:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Proizvod uspješno kreiran
+        '400':
+          description: Greška pri kreiranju proizvoda
+        '401':
+          description: Neautorizirani pristup
+          
+  /api/products/{id}:
+    get:
+      tags:
+        - Proizvodi
+      summary: Dohvati proizvod po ID-u
+      description: Dohvaća detalje o pojedinom proizvodu
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID proizvoda
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDTO'
+        '404':
+          description: Proizvod nije pronađen
+          
+    put:
+      tags:
+        - Proizvodi
+      summary: Ažuriraj proizvod
+      description: Ažurira postojeći proizvod s mogućnošću prilaganja nove slike
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID proizvoda
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                product:
+                  $ref: '#/components/schemas/ProductDTO'
+                imageFile:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Proizvod uspješno ažuriran
+        '400':
+          description: Greška pri ažuriranju proizvoda
+        '401':
+          description: Neautorizirani pristup
+          
+    delete:
+      tags:
+        - Proizvodi
+      summary: Izbriši proizvod
+      description: Briše proizvod po ID-u
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID proizvoda
+      responses:
+        '200':
+          description: Proizvod uspješno obrisan
+        '400':
+          description: Greška pri brisanju proizvoda
+        '401':
+          description: Neautorizirani pristup
+          
+  /api/categories:
+    get:
+      tags:
+        - Kategorije
+      summary: Dohvati sve kategorije
+      description: Dohvaća sve kategorije proizvoda
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryDTO'
+                  
+    post:
+      tags:
+        - Kategorije
+      summary: Kreiraj novu kategoriju
+      description: Stvara novu kategoriju proizvoda
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+      responses:
+        '200':
+          description: Kategorija uspješno kreirana
+        '400':
+          description: Greška pri kreiranju kategorije
+        '401':
+          description: Neautorizirani pristup
+          
+  /api/categories/{id}:
+    get:
+      tags:
+        - Kategorije
+      summary: Dohvati kategoriju po ID-u
+      description: Dohvaća detalje o pojedinoj kategoriji
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID kategorije
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDTO'
+        '404':
+          description: Kategorija nije pronađena
+          
+    put:
+      tags:
+        - Kategorije
+      summary: Ažuriraj kategoriju
+      description: Ažurira postojeću kategoriju
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID kategorije
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+      responses:
+        '200':
+          description: Kategorija uspješno ažurirana
+        '400':
+          description: Greška pri ažuriranju kategorije
+        '401':
+          description: Neautorizirani pristup
+          
+    delete:
+      tags:
+        - Kategorije
+      summary: Izbriši kategoriju
+      description: Briše kategoriju po ID-u
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID kategorije
+      responses:
+        '200':
+          description: Kategorija uspješno obrisana
+        '400':
+          description: Greška pri brisanju kategorije
+        '401':
+          description: Neautorizirani pristup
+          
+  /api/cart/add:
+    post:
+      tags:
+        - Košarica
+      summary: Dodaj proizvod u košaricu
+      description: Dodaje proizvod u košaricu korisnika
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemDTO'
+      responses:
+        '200':
+          description: Proizvod uspješno dodan u košaricu
+          
+  /api/cart/update:
+    post:
+      tags:
+        - Košarica
+      summary: Ažuriraj količinu proizvoda u košarici
+      description: Ažurira količinu proizvoda u košarici ili uklanja proizvod ako je količina 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: integer
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Količina uspješno ažurirana
+          
+  /api/cart/remove/{productId}:
+    delete:
+      tags:
+        - Košarica
+      summary: Ukloni proizvod iz košarice
+      description: Uklanja proizvod iz košarice korisnika
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID proizvoda za uklanjanje
+      responses:
+        '200':
+          description: Proizvod uspješno uklonjen iz košarice
+          
+  /api/cart/checkout:
+    post:
+      tags:
+        - Košarica
+      summary: Proces narudžbe
+      description: Obrađuje narudžbu iz košarice
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequestDTO'
+      responses:
+        '200':
+          description: Narudžba uspješno obrađena
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  approvalUrl:
+                    type: string
+                    description: URL za PayPal odobrenje (samo za PayPal plaćanje)
+        '400':
+          description: Greška pri obradi narudžbe
+        '401':
+          description: Korisnik nije prijavljen
+          
+  /api/payment/success:
+    get:
+      tags:
+        - Plaćanje
+      summary: Uspješno PayPal plaćanje
+      description: Obrada uspješnog PayPal plaćanja
+      parameters:
+        - name: paymentId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: PayerID
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: orderId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Plaćanje uspješno obrađeno
+        '400':
+          description: Greška pri obradi plaćanja
+          
+  /api/payment/cancel:
+    get:
+      tags:
+        - Plaćanje
+      summary: Otkazano PayPal plaćanje
+      description: Obrada otkazanog PayPal plaćanja
+      parameters:
+        - name: orderId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Otkazivanje plaćanja uspješno obrađeno
+          
+  /api/payment/status/{orderId}:
+    get:
+      tags:
+        - Plaćanje
+      summary: Status narudžbe
+      description: Dohvaća trenutni status narudžbe
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID narudžbe
+      responses:
+        '200':
+          description: Status uspješno dohvaćen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  status:
+                    type: string
+                  isConfirmed:
+                    type: boolean
+        '400':
+          description: Greška pri dohvatu statusa
+          
+  /api/orders:
+    get:
+      tags:
+        - Narudžbe
+      summary: Dohvati narudžbe korisnika
+      description: Dohvaća sve narudžbe trenutno prijavljenog korisnika
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderDTO'
+        '401':
+          description: Korisnik nije prijavljen
+          
+  /api/history-log:
+    get:
+      tags:
+        - Administracija
+      summary: Povijest prijava
+      description: Dohvaća povijest prijava korisnika
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoginHistoryDTO'
+        '401':
+          description: Neautorizirani pristup
+          
+  /api/request-log:
+    get:
+      tags:
+        - Administracija
+      summary: Log HTTP zahtjeva
+      description: Dohvaća log svih HTTP zahtjeva
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Uspješan dohvat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestLog'
+        '401':
+          description: Neautorizirani pristup
+          
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthRequestDTO:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          
+    RegisterDTO:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - phoneNumber
+        - email
+        - password
+        - repeatPassword
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Ime korisnika. Mora imati između 1 i 100 znakova.
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Prezime korisnika. Mora imati između 1 i 100 znakova.
+        phoneNumber:
+          type: string
+          description: Broj mobitela korisnika.
+        email:
+          type: string
+          format: email
+          description: Email adresa korisnika.
+        password:
+          type: string
+          minLength: 6
+          description: Lozinka. Mora imati najmanje 6 znakova.
+        repeatPassword:
+          type: string
+          minLength: 6
+          description: Potvrda lozinke. Mora se podudarati s lozinkom.
+          
+    UserInfoDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: '#/components/schemas/ApplicationUserRole'
+          
+    ApplicationUserRole:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          description: Naziv uloge, npr. ROLE_USER, ROLE_ADMIN
+          
+    MessageResponseDTO:
+      type: object
+      properties:
+        message:
+          type: string
+          
+    ProductDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: decimal
+        stock:
+          type: integer
+        imageUrl:
+          type: string
+        categoryName:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        deleted:
+          type: boolean
+          description: Označava je li proizvod obrisan ili nije
+          
+    CategoryDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          
+    CartItemDTO:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        quantity:
+          type: integer
+        imageUrl:
+          type: string
+          
+    CartDTO:
+      type: object
+      properties:
+        cartItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemDTO'
+        totalAmount:
+          type: number
+          format: double
+          
+    CheckoutRequestDTO:
+      type: object
+      required:
+        - cartItems
+        - paymentMethod
+        - shippingAddress
+      properties:
+        cartItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemDTO'
+        paymentMethod:
+          type: string
+          enum: [CASH, PAYPAL]
+        shippingAddress:
+          type: string
+          
+    OrderDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderDate:
+          type: string
+          format: date-time
+        totalAmount:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [PENDING_PAYMENT, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+        paymentMethod:
+          type: string
+          enum: [CASH_ON_DELIVERY, PAYPAL]
+        shippingAddress:
+          type: string
+        orderItems:
+          type: array
+          items:
+            type: object
+            properties:
+              productName:
+                type: string
+              quantity:
+                type: integer
+              price:
+                type: number
+                format: double
+                
+    LoginHistoryDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        userEmail:
+          type: string
+        userFirstName:
+          type: string
+        userLastName:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        ipAddress:
+          type: string
+          
+    RequestLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        endpoint:
+          type: string
+          description: URL endpointa koji je pozvan
+        method:
+          type: string
+          description: HTTP metoda (GET, POST, PUT, DELETE)
+        duration:
+          type: integer
+          format: int64
+          description: Trajanje zahtjeva u milisekundama
+        timestamp:
+          type: string
+          format: date-time
+          description: Vrijeme kada je zahtjev poslan
+        ipAddress:
+          type: string
+          description: IP adresa klijenta
+        username:
+          type: string
+          description: Korisničko ime prijavljenog korisnika
