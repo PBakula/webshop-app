@@ -2,6 +2,9 @@
 
 Webshop aplikacija s funkcionalnošću pregleda proizvoda, kupovine i administracije, koja koristi Java Spring Boot backend i React TypeScript frontend.
 
+<img width="1437" alt="homepage2" src="https://github.com/user-attachments/assets/9afe7895-170d-4068-852e-88fb41a905b0" />
+
+
 ## Opis projekta
 
 Webshop projekt je implementacija online trgovine koja omogućuje korisnicima pregled proizvoda po kategorijama, dodavanje proizvoda u košaricu, te kupovinu putem više načina plaćanja (PayPal ili plaćanje pouzećem). Aplikacija ima i administratorsko sučelje za upravljanje proizvodima i kategorijama, te praćenje povijesti narudžbi i korisničkih aktivnosti.
@@ -105,65 +108,141 @@ Swagger dokumentacija je dostupna kao dio repozitorija. Swagger file je uključe
 - GET `/api/request-log` - Dohvat loga HTTP zahtjeva
 
 
-## Konfiguracija
+## Preduvjeti
 
-Aplikacija zahtijeva postavljanje sljedećih konfiguracija:
+Za lokalno pokretanje ovog projekta, potrebno je instalirati sljedeće:
 
-1. U `application-local.properties` trebaju biti konfigurirani:
-   - Podaci za MySQL bazu podataka
-   - JWT secret ključ
-   - PayPal sandbox kredencijali
-   
-Primjer konfiguracije (zamijenite sa svojim podacima):
+### Backend preduvjeti:
+- Java JDK 17
+- Maven
+- MySQL (verzija 8.0 ili novija)
+
+### Frontend preduvjeti:
+- Node.js (18.x ili noviji)
+- npm (9.x ili noviji)
+
+## Postavljanje projekta
+
+### 1. Postavljanje baze podataka
+
+```sql
+CREATE DATABASE webshop_db;
+CREATE USER 'root'@'localhost' IDENTIFIED BY 'Lozinka1$';
+GRANT ALL PRIVILEGES ON webshop_db.* TO 'root'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+**Napomena:** Ako već imate MySQL korisnika s drugim korisničkim imenom/lozinkom, možete koristiti postojećeg korisnika - samo trebate ažurirati postavke u `application-local.properties` datoteci u backend projektu.
+
+### 2. Postavljanje backend projekta
+
+1. Klonirajte repozitorij:
+```bash
+git clone [URL_VAŠEG_REPOZITORIJA]
+cd [NAZIV_VAŠEG_REPOZITORIJA]/backend
+```
+
+2. Kompajlirajte i pokrenite Spring Boot aplikaciju:
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+
+Spring Boot aplikacija će biti dostupna na `http://localhost:9090`.
+
+#### Konfiguracija backend aplikacije
+
+Aplikacija koristi dvije properties datoteke koje morate stvoriti jer nisu uključene u repozitorij:
+
+1. Stvorite datoteku `application.properties` u `src/main/resources/` direktoriju sa sljedećim sadržajem:
+
 ```properties
-# Baza podataka
+spring.profiles.active=local
+spring.application.name=javaWebProject
+server.port=9090
+
+# Database configurations
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.generate-ddl=true
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.jdbc.time_zone=UTC
+spring.datasource.hikari.connection-init-sql=SET time_zone = '+00:00';
+
+# File upload settings
+spring.servlet.multipart.max-file-size=2MB
+spring.servlet.multipart.max-request-size=2MB
+
+# Image storage configuration
+app.image.upload-dir=src/main/resources/static/images/uploads
+app.image.public-url=/images/uploads
+app.image.default-image=/images/image-not-found.png
+
+# Ostale konfiguracije možete dodati prema potrebi
+```
+
+2. Stvorite datoteku `application-local.properties` u `src/main/resources/` direktoriju sa sljedećim sadržajem:
+
+```properties
+# Database connection for local development
 spring.datasource.url=jdbc:mysql://localhost:3306/webshop_db
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+spring.datasource.username=root
+spring.datasource.password=Lozinka1$
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-# JWT Secret
-jwt.secret=your_secure_jwt_secret
+# JWT configuration
+jwt.secret=357638792F423F4428472B4B6250655368566D597133743677397A2443264629
 
-# PayPal
-paypal.client-id=your_paypal_client_id
-paypal.client-secret=your_paypal_client_secret
+# PayPal configuration
+paypal.client-id=AWySiD-qVMFmstR7I5trfwJXy5gbeHWggQlZUgJ7baxmHvybDl4uxV0e0Lt0plJ9hlPSvAIri-8-r2zz
+paypal.client-secret=EM-h82Vy-2jE2CEkkB1fOqA4uV1fmZN1v6ITnX4yxZMvfY892JdS50-VkMKt-k-aAQ5mw9NPZTxj7TPT
 paypal.mode=sandbox
 ```
 
-## Instalacija i pokretanje
+**Napomena:** Ako već imate MySQL korisnika s drugim korisničkim imenom/lozinkom, ažurirajte postavke `spring.datasource.username` i `spring.datasource.password` u `application-local.properties` datoteci.
 
-### Preduvjeti
-- Java 17 ili novija
-- Node.js i npm
-- MySQL server
-- Maven
+### 3. Postavljanje frontend projekta
 
-### Backend
-1. Klonirajte repozitorij
-2. Kreirajte bazu podataka:
-   ```sql
-   CREATE DATABASE webshop_db;
-   ```
-3. Kreirajte `application-local.properties` prema gornjem primjeru
-4. Pokrenite aplikaciju:
-   ```bash
-   mvn spring-boot:run
-   ```
+1. Navigirajte do frontend direktorija:
+```bash
+cd [NAZIV_VAŠEG_REPOZITORIJA]/frontend
+```
 
-Backend će biti dostupan na: `http://localhost:9090`
+2. Instalirajte dependencije:
+```bash
+npm install
+```
 
-### Frontend
-1. Navigirajte u direktorij `webshop-react-app`
-2. Instalirajte ovisnosti:
-   ```bash
-   npm install
-   ```
-3. Pokrenite aplikaciju:
-   ```bash
-   npm run dev
-   ```
+3. Pokrenite React aplikaciju:
+```bash
+npm run dev
+```
 
-Frontend će biti dostupan na: `http://localhost:5173`
+Frontend aplikacija će biti dostupna na `http://localhost:5173` (ili neki drugi port kojeg Vite odabere ako je 5173 zauzet).
+
+## API Dokumentacija
+
+Projekt koristi ručno napisanu Swagger dokumentaciju. Za pregled API dokumentacije:
+
+1. Otvorite Swagger datoteku koja se nalazi u root direktoriju projekta
+2. Koristite online Swagger Editor (https://editor.swagger.io/) za pregled dokumentacije
+3. Učitajte Swagger datoteku u editor za interaktivni pregled API-ja
+
+## PayPal Integracija
+
+Za testiranje PayPal funkcionalnosti, koristite sandbox kredencijale koji su konfigurirani u `application-local.properties`.
+
+## Dodatne informacije
+
+### Backend Port
+Backend aplikacija radi na portu 9090.
+
+### Frontend URL konfiguracija
+Frontend aplikacija je konfigurirana da pristupa backend API-ju na `http://localhost:9090/api`. Ako promijenite port backend aplikacije, morate ažurirati i URL u frontend aplikaciji (ApiService.ts).
+
+### Upload slika
+Slike se pohranjuju u `src/main/resources/static/images/uploads` direktoriju na backend strani. Maksimalna dopuštena veličina za upload je 2MB.
 
 ## Napomene
 
