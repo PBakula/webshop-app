@@ -4,6 +4,10 @@ Webshop aplikacija s funkcionalnošću pregleda proizvoda, kupovine i administra
 
 <img width="1437" alt="homepage2" src="https://github.com/user-attachments/assets/9afe7895-170d-4068-852e-88fb41a905b0" />
 
+<img width="1440" alt="paymentResultPage" src="https://github.com/user-attachments/assets/2d68d94a-bab6-4858-8004-fd5d774f900a" />
+
+![adminProducts](https://github.com/user-attachments/assets/25227672-a26c-48c0-b437-e58a69cf269a)
+
 
 ## Opis projekta
 
